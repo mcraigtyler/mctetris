@@ -1,0 +1,18 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "vcpkg",
+            "displayName": "vcpkg (manifest)",
+            "description": "Configure using the vcpkg toolchain from the submodule.",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            },
+            "environment": {
+                "VCPKG_FEATURE_FLAGS": "manifests",
+                "VCPKG_ROOT": "${sourceDir}/external/vcpkg"
+            }
+        }
+    ]
+}
