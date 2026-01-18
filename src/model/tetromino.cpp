@@ -3,40 +3,54 @@
 namespace mctetris::model {
 namespace {
 
-constexpr std::array<std::array<Point, 4>, 4> kI = {{{{0, 1}, {1, 1}, {2, 1}, {3, 1}},
-                                                    {{2, 0}, {2, 1}, {2, 2}, {2, 3}},
-                                                    {{0, 2}, {1, 2}, {2, 2}, {3, 2}},
-                                                    {{1, 0}, {1, 1}, {1, 2}, {1, 3}}}};
+constexpr std::array<std::array<Point, 4>, 4> kI = {{
+    std::array<Point, 4>{Point{0, 1}, Point{1, 1}, Point{2, 1}, Point{3, 1}},
+    std::array<Point, 4>{Point{2, 0}, Point{2, 1}, Point{2, 2}, Point{2, 3}},
+    std::array<Point, 4>{Point{0, 2}, Point{1, 2}, Point{2, 2}, Point{3, 2}},
+    std::array<Point, 4>{Point{1, 0}, Point{1, 1}, Point{1, 2}, Point{1, 3}},
+}};
 
-constexpr std::array<std::array<Point, 4>, 4> kO = {{{{1, 0}, {2, 0}, {1, 1}, {2, 1}},
-                                                    {{1, 0}, {2, 0}, {1, 1}, {2, 1}},
-                                                    {{1, 0}, {2, 0}, {1, 1}, {2, 1}},
-                                                    {{1, 0}, {2, 0}, {1, 1}, {2, 1}}}};
+constexpr std::array<std::array<Point, 4>, 4> kO = {{
+    std::array<Point, 4>{Point{1, 0}, Point{2, 0}, Point{1, 1}, Point{2, 1}},
+    std::array<Point, 4>{Point{1, 0}, Point{2, 0}, Point{1, 1}, Point{2, 1}},
+    std::array<Point, 4>{Point{1, 0}, Point{2, 0}, Point{1, 1}, Point{2, 1}},
+    std::array<Point, 4>{Point{1, 0}, Point{2, 0}, Point{1, 1}, Point{2, 1}},
+}};
 
-constexpr std::array<std::array<Point, 4>, 4> kT = {{{{1, 0}, {0, 1}, {1, 1}, {2, 1}},
-                                                    {{1, 0}, {1, 1}, {2, 1}, {1, 2}},
-                                                    {{0, 1}, {1, 1}, {2, 1}, {1, 2}},
-                                                    {{1, 0}, {0, 1}, {1, 1}, {1, 2}}}};
+constexpr std::array<std::array<Point, 4>, 4> kT = {{
+    std::array<Point, 4>{Point{1, 0}, Point{0, 1}, Point{1, 1}, Point{2, 1}},
+    std::array<Point, 4>{Point{1, 0}, Point{1, 1}, Point{2, 1}, Point{1, 2}},
+    std::array<Point, 4>{Point{0, 1}, Point{1, 1}, Point{2, 1}, Point{1, 2}},
+    std::array<Point, 4>{Point{1, 0}, Point{0, 1}, Point{1, 1}, Point{1, 2}},
+}};
 
-constexpr std::array<std::array<Point, 4>, 4> kS = {{{{1, 0}, {2, 0}, {0, 1}, {1, 1}},
-                                                    {{1, 0}, {1, 1}, {2, 1}, {2, 2}},
-                                                    {{1, 1}, {2, 1}, {0, 2}, {1, 2}},
-                                                    {{0, 0}, {0, 1}, {1, 1}, {1, 2}}}};
+constexpr std::array<std::array<Point, 4>, 4> kS = {{
+    std::array<Point, 4>{Point{1, 0}, Point{2, 0}, Point{0, 1}, Point{1, 1}},
+    std::array<Point, 4>{Point{1, 0}, Point{1, 1}, Point{2, 1}, Point{2, 2}},
+    std::array<Point, 4>{Point{1, 1}, Point{2, 1}, Point{0, 2}, Point{1, 2}},
+    std::array<Point, 4>{Point{0, 0}, Point{0, 1}, Point{1, 1}, Point{1, 2}},
+}};
 
-constexpr std::array<std::array<Point, 4>, 4> kZ = {{{{0, 0}, {1, 0}, {1, 1}, {2, 1}},
-                                                    {{2, 0}, {1, 1}, {2, 1}, {1, 2}},
-                                                    {{0, 1}, {1, 1}, {1, 2}, {2, 2}},
-                                                    {{1, 0}, {0, 1}, {1, 1}, {0, 2}}}};
+constexpr std::array<std::array<Point, 4>, 4> kZ = {{
+    std::array<Point, 4>{Point{0, 0}, Point{1, 0}, Point{1, 1}, Point{2, 1}},
+    std::array<Point, 4>{Point{2, 0}, Point{1, 1}, Point{2, 1}, Point{1, 2}},
+    std::array<Point, 4>{Point{0, 1}, Point{1, 1}, Point{1, 2}, Point{2, 2}},
+    std::array<Point, 4>{Point{1, 0}, Point{0, 1}, Point{1, 1}, Point{0, 2}},
+}};
 
-constexpr std::array<std::array<Point, 4>, 4> kJ = {{{{0, 0}, {0, 1}, {1, 1}, {2, 1}},
-                                                    {{1, 0}, {2, 0}, {1, 1}, {1, 2}},
-                                                    {{0, 1}, {1, 1}, {2, 1}, {2, 2}},
-                                                    {{1, 0}, {1, 1}, {0, 2}, {1, 2}}}};
+constexpr std::array<std::array<Point, 4>, 4> kJ = {{
+    std::array<Point, 4>{Point{0, 0}, Point{0, 1}, Point{1, 1}, Point{2, 1}},
+    std::array<Point, 4>{Point{1, 0}, Point{2, 0}, Point{1, 1}, Point{1, 2}},
+    std::array<Point, 4>{Point{0, 1}, Point{1, 1}, Point{2, 1}, Point{2, 2}},
+    std::array<Point, 4>{Point{1, 0}, Point{1, 1}, Point{0, 2}, Point{1, 2}},
+}};
 
-constexpr std::array<std::array<Point, 4>, 4> kL = {{{{2, 0}, {0, 1}, {1, 1}, {2, 1}},
-                                                    {{1, 0}, {1, 1}, {1, 2}, {2, 2}},
-                                                    {{0, 1}, {1, 1}, {2, 1}, {0, 2}},
-                                                    {{0, 0}, {1, 0}, {1, 1}, {1, 2}}}};
+constexpr std::array<std::array<Point, 4>, 4> kL = {{
+    std::array<Point, 4>{Point{2, 0}, Point{0, 1}, Point{1, 1}, Point{2, 1}},
+    std::array<Point, 4>{Point{1, 0}, Point{1, 1}, Point{1, 2}, Point{2, 2}},
+    std::array<Point, 4>{Point{0, 1}, Point{1, 1}, Point{2, 1}, Point{0, 2}},
+    std::array<Point, 4>{Point{0, 0}, Point{1, 0}, Point{1, 1}, Point{1, 2}},
+}};
 
 constexpr const std::array<std::array<Point, 4>, 4> &ShapeFor(TetrominoType type) {
     switch (type) {

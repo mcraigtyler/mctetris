@@ -1,6 +1,6 @@
-#include "board.h"
-
 #include <algorithm>
+
+#include "board.h"
 
 namespace mctetris::model {
 

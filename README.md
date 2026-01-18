@@ -32,6 +32,12 @@ cmake -S . -B build
 cmake --build build
 ```
 
+## Lint (clang-format)
+```bash
+cmake -S . -B build
+cmake --build build --target format
+```
+
 ## Run
 ```bash
 ./build/mctetris
