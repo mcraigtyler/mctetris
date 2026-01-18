@@ -10,7 +10,13 @@ int main() {
     curs_set(0);
 
     mctetris::model::GameModel model;
-    model.Spawn(mctetris::model::TetrominoType::T);
+    if (!model.Spawn(mctetris::model::TetrominoType::T)) {
+        mvprintw(0, 0, "Failed to spawn initial piece. Press any key to exit.");
+        refresh();
+        getch();
+        endwin();
+        return 1;
+    }
 
     mvprintw(0, 0, "MCTetris bootstrapped. Press any key to exit.");
     refresh();
