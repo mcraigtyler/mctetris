@@ -26,6 +26,27 @@ Arch:
 sudo pacman -S --needed ncurses
 ```
 
+## vcpkg (manifest mode)
+If you prefer not to install system packages, use vcpkg to provide ncurses.
+
+1. Initialize the submodule:
+   ```bash
+   git submodule update --init --recursive
+   ```
+2. Bootstrap vcpkg:
+   ```bash
+   ./external/vcpkg/bootstrap-vcpkg.sh
+   ```
+3. If your vcpkg version requires a manifest baseline, run:
+   ```bash
+   ./external/vcpkg/vcpkg x-update-baseline
+   ```
+4. Configure and build:
+   ```bash
+   cmake --preset vcpkg
+   cmake --build build
+   ```
+
 ## Build
 ```bash
 cmake -S . -B build
