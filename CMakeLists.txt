@@ -10,6 +10,9 @@ find_package(Curses REQUIRED)
 
 add_executable(mctetris
     src/main.cpp
+    src/model/board.cpp
+    src/model/game_model.cpp
+    src/model/tetromino.cpp
 )
 
 target_include_directories(mctetris PRIVATE ${CURSES_INCLUDE_DIR})
