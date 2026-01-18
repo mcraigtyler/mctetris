@@ -9,6 +9,23 @@ CLI Tetris clone for Linux terminals, built in C++ with ncurses.
 - CMake 3.28+.
 - ncurses development package (e.g., `libncurses-dev`).
 
+## Install ncurses (Linux)
+Debian/Ubuntu:
+```bash
+sudo apt-get update
+sudo apt-get install -y libncurses-dev
+```
+
+Fedora:
+```bash
+sudo dnf install -y ncurses-devel
+```
+
+Arch:
+```bash
+sudo pacman -S --needed ncurses
+```
+
 ## Build
 ```bash
 cmake -S . -B build
