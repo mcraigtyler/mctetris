@@ -1,8 +1,10 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstring>
 #include <optional>
 #include <random>
+#include <string>
 #include <thread>
 
 #include <curses.h>
@@ -20,6 +22,16 @@ constexpr int kNextPanelWidth = kCellWidth * 4 + 4;
 constexpr int kNextPanelHeight = kCellHeight * 4 + 4;
 constexpr int kStatsPanelWidth = 18;
 constexpr int kStatsPanelHeight = 6;
+
+struct ControlScheme {
+    const char *name;
+    int left;
+    int right;
+    int down;
+    int rotate;
+    int hardDrop;
+    const char *hint;
+};
 
 short ColorPairForCell(mctetris::model::Cell cell) {
     using mctetris::model::Cell;
@@ -115,9 +127,10 @@ void RenderOverlay(int centerY, int centerX, const char *text) {
     mvprintw(centerY, centerX - static_cast<int>(strlen(text)) / 2, "%s", text);
 }
 
-void Render(const mctetris::model::GameModel &model,
-            const std::optional<mctetris::model::TetrominoType> &nextType,
-            bool paused) {
+void RenderGame(const mctetris::model::GameModel &model,
+                const std::optional<mctetris::model::TetrominoType> &nextType,
+                const ControlScheme &scheme,
+                bool paused) {
     using mctetris::model::kBoardHeight;
     using mctetris::model::kBoardWidth;
 
@@ -157,10 +170,10 @@ void Render(const mctetris::model::GameModel &model,
     const int statsTop = nextTop + kNextPanelHeight + 1;
     RenderStatsPanel(statsTop, panelLeft, model);
 
-    mvprintw(0, 0, "Score: %d  Level: %d  Lines: %d", model.Score(), model.Level(),
-             model.LinesCleared());
+    mvprintw(0, 0, "Score: %d  Level: %d  Lines: %d  Scheme: %s", model.Score(), model.Level(),
+             model.LinesCleared(), scheme.name);
     mvprintw(kBoardOffsetY + boardHeightChars + 2, 0,
-             "Arrows: move/rotate  Space: hard drop  P: pause  Q: quit");
+             "%s  P: pause  Q: quit", scheme.hint);
 
     const int centerY = kBoardOffsetY + boardHeightChars / 2;
     const int centerX = kBoardOffsetX + boardWidthChars / 2;
@@ -173,9 +186,74 @@ void Render(const mctetris::model::GameModel &model,
     doupdate();
 }
 
+void RenderMenu(int selectedIndex) {
+    constexpr std::array<const char *, 3> kItems = {"Start Game", "Control Scheme", "Quit"};
+    const std::string title = "MCTETRIS";
+    int maxWidth = static_cast<int>(title.size());
+    for (const char *item : kItems) {
+        maxWidth = std::max(maxWidth, static_cast<int>(std::strlen(item)));
+    }
+    const int startY = (LINES / 2) - static_cast<int>(kItems.size());
+    const int startX = (COLS - maxWidth) / 2;
+
+    erase();
+    attron(A_BOLD);
+    mvprintw(startY - 2, (COLS - static_cast<int>(title.size())) / 2, "%s", title.c_str());
+    attroff(A_BOLD);
+    for (size_t i = 0; i < kItems.size(); ++i) {
+        if (static_cast<int>(i) == selectedIndex) {
+            attron(A_REVERSE);
+        }
+        mvprintw(startY + static_cast<int>(i), startX, "%s", kItems[i]);
+        if (static_cast<int>(i) == selectedIndex) {
+            attroff(A_REVERSE);
+        }
+    }
+    mvprintw(LINES - 2, 2, "Use Up/Down and Enter to select.");
+    wnoutrefresh(stdscr);
+    doupdate();
+}
+
+void RenderControlMenu(int selectedIndex,
+                       int activeIndex,
+                       const std::array<ControlScheme, 3> &schemes) {
+    const std::string title = "CONTROL SCHEME";
+    int maxWidth = static_cast<int>(title.size());
+    for (const auto &scheme : schemes) {
+        maxWidth = std::max(maxWidth, static_cast<int>(std::strlen(scheme.name)) + 3);
+    }
+    const int startY = (LINES / 2) - static_cast<int>(schemes.size());
+    const int startX = (COLS - maxWidth) / 2;
+
+    erase();
+    attron(A_BOLD);
+    mvprintw(startY - 2, (COLS - static_cast<int>(title.size())) / 2, "%s", title.c_str());
+    attroff(A_BOLD);
+    for (size_t i = 0; i < schemes.size(); ++i) {
+        const bool isSelected = static_cast<int>(i) == selectedIndex;
+        const bool isActive = static_cast<int>(i) == activeIndex;
+        if (isSelected) {
+            attron(A_REVERSE);
+        }
+        mvprintw(startY + static_cast<int>(i), startX, "%s%s",
+                 isActive ? "* " : "  ", schemes[i].name);
+        if (isSelected) {
+            attroff(A_REVERSE);
+        }
+    }
+    mvprintw(LINES - 3, 2, "Enter selects. B or Esc returns.");
+    mvprintw(LINES - 2, 2, "Current scheme is marked with *.");
+    wnoutrefresh(stdscr);
+    doupdate();
+}
+
 mctetris::model::TetrominoType RandomType(std::mt19937 &rng) {
     std::uniform_int_distribution<int> dist(0, 6);
     return static_cast<mctetris::model::TetrominoType>(dist(rng));
+}
+
+bool IsEnterKey(int ch) {
+    return ch == '\n' || ch == '\r' || ch == KEY_ENTER;
 }
 
 } // namespace
@@ -199,58 +277,109 @@ int main() {
         init_pair(7, COLOR_WHITE, COLOR_WHITE);
     }
 
+    const std::array<ControlScheme, 3> schemes = {
+        ControlScheme{"WASD", 'a', 'd', 's', 'w', ' ', "WASD: move/rotate  Space: hard drop"},
+        ControlScheme{"Arrows", KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP, ' ',
+                      "Arrows: move/rotate  Space: hard drop"},
+        ControlScheme{"NumPad", '4', '6', '5', '8', '0',
+                      "NumPad 4/6/5/8: move/rotate  0: hard drop"}};
+
     mctetris::model::GameModel model;
     std::random_device device;
     std::mt19937 rng(device());
-    std::optional<mctetris::model::TetrominoType> nextType = RandomType(rng);
-    (void)model.Spawn(*nextType);
-    nextType = RandomType(rng);
+    std::optional<mctetris::model::TetrominoType> nextType;
 
     using Clock = std::chrono::steady_clock;
     auto lastGravity = Clock::now();
-    bool running = true;
+    int activeScheme = 0;
+    int menuIndex = 0;
+    int controlIndex = 0;
     bool paused = false;
+    enum class Screen { Menu,
+                        Controls,
+                        Game };
+    Screen screen = Screen::Menu;
+
+    auto startGame = [&]() {
+        model = mctetris::model::GameModel{};
+        nextType = RandomType(rng);
+        (void)model.Spawn(*nextType);
+        nextType = RandomType(rng);
+        paused = false;
+        lastGravity = Clock::now();
+    };
+    bool running = true;
     while (running) {
         const int ch = getch();
-        if (ch == 'p' || ch == 'P') {
-            paused = !paused;
-        } else if (ch == 'q' || ch == 'Q') {
-            running = false;
-        } else if (!paused && !model.IsGameOver()) {
-            switch (ch) {
-            case KEY_LEFT:
-                (void)model.Move(-1, 0);
-                break;
-            case KEY_RIGHT:
-                (void)model.Move(1, 0);
-                break;
-            case KEY_DOWN:
-                (void)model.SoftDrop();
-                break;
-            case KEY_UP:
-                (void)model.RotateCW();
-                break;
-            case ' ':
-                model.HardDrop();
-                break;
-            default:
-                break;
+        if (screen == Screen::Menu) {
+            if (ch == 'q' || ch == 'Q') {
+                running = false;
+            } else if (ch == KEY_UP || ch == 'w' || ch == 'W') {
+                menuIndex = (menuIndex + 2) % 3;
+            } else if (ch == KEY_DOWN || ch == 's' || ch == 'S') {
+                menuIndex = (menuIndex + 1) % 3;
+            } else if (IsEnterKey(ch)) {
+                if (menuIndex == 0) {
+                    startGame();
+                    screen = Screen::Game;
+                } else if (menuIndex == 1) {
+                    controlIndex = activeScheme;
+                    screen = Screen::Controls;
+                } else if (menuIndex == 2) {
+                    running = false;
+                }
+            }
+        } else if (screen == Screen::Controls) {
+            if (ch == 27 || ch == 'b' || ch == 'B') {
+                screen = Screen::Menu;
+            } else if (ch == KEY_UP || ch == 'w' || ch == 'W') {
+                controlIndex = (controlIndex + 2) % 3;
+            } else if (ch == KEY_DOWN || ch == 's' || ch == 'S') {
+                controlIndex = (controlIndex + 1) % 3;
+            } else if (IsEnterKey(ch)) {
+                activeScheme = controlIndex;
+                screen = Screen::Menu;
+            }
+        } else if (screen == Screen::Game) {
+            if (ch == 'p' || ch == 'P') {
+                paused = !paused;
+            } else if (ch == 'q' || ch == 'Q') {
+                running = false;
+            } else if (!paused && !model.IsGameOver()) {
+                const ControlScheme &scheme = schemes[activeScheme];
+                if (ch == scheme.left) {
+                    (void)model.Move(-1, 0);
+                } else if (ch == scheme.right) {
+                    (void)model.Move(1, 0);
+                } else if (ch == scheme.down) {
+                    (void)model.SoftDrop();
+                } else if (ch == scheme.rotate) {
+                    (void)model.RotateCW();
+                } else if (ch == scheme.hardDrop) {
+                    model.HardDrop();
+                }
             }
         }
 
-        if (!paused && !model.CurrentPiece() && !model.IsGameOver()) {
-            (void)model.Spawn(nextType.value_or(RandomType(rng)));
-            nextType = RandomType(rng);
-        }
+        if (screen == Screen::Game) {
+            if (!paused && !model.CurrentPiece() && !model.IsGameOver()) {
+                (void)model.Spawn(nextType.value_or(RandomType(rng)));
+                nextType = RandomType(rng);
+            }
 
-        const auto now = Clock::now();
-        const auto gravityDelay = std::chrono::milliseconds(model.GravityDelayMs());
-        if (!paused && !model.IsGameOver() && now - lastGravity >= gravityDelay) {
-            model.TickGravity();
-            lastGravity = now;
-        }
+            const auto now = Clock::now();
+            const auto gravityDelay = std::chrono::milliseconds(model.GravityDelayMs());
+            if (!paused && !model.IsGameOver() && now - lastGravity >= gravityDelay) {
+                model.TickGravity();
+                lastGravity = now;
+            }
 
-        Render(model, nextType, paused);
+            RenderGame(model, nextType, schemes[activeScheme], paused);
+        } else if (screen == Screen::Menu) {
+            RenderMenu(menuIndex);
+        } else {
+            RenderControlMenu(controlIndex, activeScheme, schemes);
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
