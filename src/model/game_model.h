@@ -18,6 +18,7 @@ class GameModel {
     [[nodiscard]] bool IsGameOver() const;
     [[nodiscard]] int Level() const;
     [[nodiscard]] int LinesCleared() const;
+    [[nodiscard]] int Score() const;
     [[nodiscard]] int GravityDelayMs() const;
     [[nodiscard]] const Board &GetBoard() const;
     [[nodiscard]] const std::optional<ActivePiece> &CurrentPiece() const;
@@ -31,6 +32,7 @@ class GameModel {
     std::optional<ActivePiece> current_{};
     int linesCleared_ = 0;
     int level_ = 0;
+    int score_ = 0;
     bool gameOver_ = false;
 };
 
