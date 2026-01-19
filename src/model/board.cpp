@@ -71,4 +71,4 @@ const std::array<std::array<Cell, kBoardWidth>, kBoardHeight> &Board::Cells() co
     return cells_;
 }
 
-}  // namespace mctetris::model
+} // namespace mctetris::model

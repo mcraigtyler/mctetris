@@ -36,4 +36,4 @@ struct Tetromino {
     [[nodiscard]] Cell CellType() const;
 };
 
-}  // namespace mctetris::model
+} // namespace mctetris::model

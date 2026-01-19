@@ -26,4 +26,4 @@ class Board {
     std::array<std::array<Cell, kBoardWidth>, kBoardHeight> cells_{};
 };
 
-}  // namespace mctetris::model
+} // namespace mctetris::model

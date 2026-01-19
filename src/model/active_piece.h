@@ -10,4 +10,4 @@ struct ActivePiece {
     Point origin{0, 0};
 };
 
-}  // namespace mctetris::model
+} // namespace mctetris::model
