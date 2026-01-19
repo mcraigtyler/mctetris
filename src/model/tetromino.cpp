@@ -54,25 +54,25 @@ constexpr std::array<std::array<Point, 4>, 4> kL = {{
 
 constexpr const std::array<std::array<Point, 4>, 4> &ShapeFor(TetrominoType type) {
     switch (type) {
-        case TetrominoType::I:
-            return kI;
-        case TetrominoType::O:
-            return kO;
-        case TetrominoType::T:
-            return kT;
-        case TetrominoType::S:
-            return kS;
-        case TetrominoType::Z:
-            return kZ;
-        case TetrominoType::J:
-            return kJ;
-        case TetrominoType::L:
-            return kL;
+    case TetrominoType::I:
+        return kI;
+    case TetrominoType::O:
+        return kO;
+    case TetrominoType::T:
+        return kT;
+    case TetrominoType::S:
+        return kS;
+    case TetrominoType::Z:
+        return kZ;
+    case TetrominoType::J:
+        return kJ;
+    case TetrominoType::L:
+        return kL;
     }
     return kI;
 }
 
-}  // namespace
+} // namespace
 
 std::array<Point, 4> Tetromino::Blocks() const {
     const auto &shape = ShapeFor(type);
@@ -81,22 +81,22 @@ std::array<Point, 4> Tetromino::Blocks() const {
 
 Cell Tetromino::CellType() const {
     switch (type) {
-        case TetrominoType::I:
-            return Cell::I;
-        case TetrominoType::O:
-            return Cell::O;
-        case TetrominoType::T:
-            return Cell::T;
-        case TetrominoType::S:
-            return Cell::S;
-        case TetrominoType::Z:
-            return Cell::Z;
-        case TetrominoType::J:
-            return Cell::J;
-        case TetrominoType::L:
-            return Cell::L;
+    case TetrominoType::I:
+        return Cell::I;
+    case TetrominoType::O:
+        return Cell::O;
+    case TetrominoType::T:
+        return Cell::T;
+    case TetrominoType::S:
+        return Cell::S;
+    case TetrominoType::Z:
+        return Cell::Z;
+    case TetrominoType::J:
+        return Cell::J;
+    case TetrominoType::L:
+        return Cell::L;
     }
     return Cell::Empty;
 }
 
-}  // namespace mctetris::model
+} // namespace mctetris::model

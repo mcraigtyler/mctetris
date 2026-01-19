@@ -7,4 +7,4 @@ struct Point {
     int y = 0;
 };
 
-}  // namespace mctetris::model
+} // namespace mctetris::model
