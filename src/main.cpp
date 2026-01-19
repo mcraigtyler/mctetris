@@ -13,9 +13,11 @@ namespace {
 
 constexpr int kBoardOffsetX = 2;
 constexpr int kBoardOffsetY = 1;
+constexpr int kCellWidth = 4;
+constexpr int kCellHeight = 2;
 constexpr int kPanelOffsetX = 16;
-constexpr int kNextPanelWidth = 12;
-constexpr int kNextPanelHeight = 8;
+constexpr int kNextPanelWidth = kCellWidth * 4 + 4;
+constexpr int kNextPanelHeight = kCellHeight * 4 + 4;
 constexpr int kStatsPanelWidth = 18;
 constexpr int kStatsPanelHeight = 6;
 
@@ -61,13 +63,17 @@ void DrawBox(int top, int left, int height, int width) {
 
 void DrawCell(int screenY, int screenX, mctetris::model::Cell cell) {
     const short pair = ColorPairForCell(cell);
-    if (pair == 0) {
-        mvaddch(screenY, screenX, ' ');
-        return;
+    if (pair != 0) {
+        attron(COLOR_PAIR(pair));
     }
-    attron(COLOR_PAIR(pair));
-    mvaddch(screenY, screenX, ' ');
-    attroff(COLOR_PAIR(pair));
+    for (int dy = 0; dy < kCellHeight; ++dy) {
+        for (int dx = 0; dx < kCellWidth; ++dx) {
+            mvaddch(screenY + dy, screenX + dx, ' ');
+        }
+    }
+    if (pair != 0) {
+        attroff(COLOR_PAIR(pair));
+    }
 }
 
 void RenderNextPiecePanel(int top, int left, const std::optional<mctetris::model::TetrominoType> &nextType) {
@@ -89,10 +95,10 @@ void RenderNextPiecePanel(int top, int left, const std::optional<mctetris::model
     }
 
     const int offsetY = top + 2;
-    const int offsetX = left + 4;
+    const int offsetX = left + 2;
     for (int y = 0; y < 4; ++y) {
         for (int x = 0; x < 4; ++x) {
-            DrawCell(offsetY + y, offsetX + x, previewCells[y][x]);
+            DrawCell(offsetY + y * kCellHeight, offsetX + x * kCellWidth, previewCells[y][x]);
         }
     }
 }
@@ -115,6 +121,8 @@ void Render(const mctetris::model::GameModel &model,
     using mctetris::model::kBoardHeight;
     using mctetris::model::kBoardWidth;
 
+    const int boardHeightChars = kBoardHeight * kCellHeight;
+    const int boardWidthChars = kBoardWidth * kCellWidth;
     std::array<std::array<mctetris::model::Cell, kBoardWidth>, kBoardHeight> buffer{};
     const auto &cells = model.GetBoard().Cells();
     for (int y = 0; y < kBoardHeight; ++y) {
@@ -134,15 +142,15 @@ void Render(const mctetris::model::GameModel &model,
         }
     }
 
-    clear();
-    DrawBox(kBoardOffsetY - 1, kBoardOffsetX - 1, kBoardHeight + 2, kBoardWidth + 2);
+    erase();
+    DrawBox(kBoardOffsetY - 1, kBoardOffsetX - 1, boardHeightChars + 2, boardWidthChars + 2);
     for (int y = 0; y < kBoardHeight; ++y) {
         for (int x = 0; x < kBoardWidth; ++x) {
-            DrawCell(kBoardOffsetY + y, kBoardOffsetX + x, buffer[y][x]);
+            DrawCell(kBoardOffsetY + y * kCellHeight, kBoardOffsetX + x * kCellWidth, buffer[y][x]);
         }
     }
 
-    const int panelLeft = kBoardOffsetX + kBoardWidth + kPanelOffsetX;
+    const int panelLeft = kBoardOffsetX + boardWidthChars + kPanelOffsetX;
     const int nextTop = kBoardOffsetY;
     RenderNextPiecePanel(nextTop, panelLeft, nextType);
 
@@ -151,17 +159,18 @@ void Render(const mctetris::model::GameModel &model,
 
     mvprintw(0, 0, "Score: %d  Level: %d  Lines: %d", model.Score(), model.Level(),
              model.LinesCleared());
-    mvprintw(kBoardOffsetY + kBoardHeight + 2, 0,
+    mvprintw(kBoardOffsetY + boardHeightChars + 2, 0,
              "Arrows: move/rotate  Space: hard drop  P: pause  Q: quit");
 
-    const int centerY = kBoardOffsetY + kBoardHeight / 2;
-    const int centerX = kBoardOffsetX + kBoardWidth / 2;
+    const int centerY = kBoardOffsetY + boardHeightChars / 2;
+    const int centerX = kBoardOffsetX + boardWidthChars / 2;
     if (paused) {
         RenderOverlay(centerY, centerX, "PAUSED");
     } else if (model.IsGameOver()) {
         RenderOverlay(centerY, centerX, "GAME OVER");
     }
-    refresh();
+    wnoutrefresh(stdscr);
+    doupdate();
 }
 
 mctetris::model::TetrominoType RandomType(std::mt19937 &rng) {
