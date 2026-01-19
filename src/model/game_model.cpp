@@ -9,6 +9,25 @@ constexpr int kLinesPerLevel = 10;
 constexpr int kBaseGravityMs = 1000;
 constexpr int kGravityStepMs = 75;
 constexpr int kMinGravityMs = 100;
+constexpr int kSingleLineScore = 100;
+constexpr int kDoubleLineScore = 300;
+constexpr int kTripleLineScore = 500;
+constexpr int kTetrisScore = 800;
+
+int ScoreForLines(int cleared) {
+    switch (cleared) {
+    case 1:
+        return kSingleLineScore;
+    case 2:
+        return kDoubleLineScore;
+    case 3:
+        return kTripleLineScore;
+    case 4:
+        return kTetrisScore;
+    default:
+        return 0;
+    }
+}
 
 } // namespace
 
@@ -89,6 +108,10 @@ int GameModel::LinesCleared() const {
     return linesCleared_;
 }
 
+int GameModel::Score() const {
+    return score_;
+}
+
 int GameModel::GravityDelayMs() const {
     const int scaled = kBaseGravityMs - level_ * kGravityStepMs;
     return scaled < kMinGravityMs ? kMinGravityMs : scaled;
@@ -114,6 +137,7 @@ void GameModel::LockPiece() {
     current_.reset();
     const int cleared = board_.ClearFullLines();
     if (cleared > 0) {
+        score_ += ScoreForLines(cleared) * (level_ + 1);
         linesCleared_ += cleared;
         UpdateLevel();
     }
